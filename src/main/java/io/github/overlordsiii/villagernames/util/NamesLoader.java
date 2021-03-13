@@ -1,6 +1,5 @@
 package io.github.overlordsiii.villagernames.util;
 
-
 import com.google.gson.*;
 import io.github.overlordsiii.villagernames.VillagerNames;
 import net.fabricmc.loader.api.FabricLoader;
@@ -19,13 +18,12 @@ import java.util.List;
 public class NamesLoader {
     public static void load() {
         if (!VillagerNames.CONFIG.villagerGeneralConfig.hasRead){
-           VillagerNames.CONFIG.villagerNamesConfig.villagerNames = loadJson("villagerNames.json");
-           VillagerNames.CONFIG.golemNamesConfig.golemNames = loadJson("golemNames.json");
-           VillagerNames.CONFIG.sureNamesConfig.sureNames = loadJson("surnameNames.json");
-           VillagerNames.CONFIG.villagerGeneralConfig.hasRead = true;
-            //noinspection UnstableApiUsage
-            VillagerNames.CONFIG_MANAGER.save();
-       } if (VillagerNames.CONFIG.sureNamesConfig.sureNames.isEmpty()) {
+            VillagerNames.CONFIG.villagerNamesConfig.villagerNames = loadJson("villagerNames.json");
+            VillagerNames.CONFIG.golemNamesConfig.golemNames = loadJson("golemNames.json");
+            VillagerNames.CONFIG.sureNamesConfig.sureNames = loadJson("surnameNames.json");
+            VillagerNames.CONFIG.villagerGeneralConfig.hasRead = true;
+            VillagerNames.CONFIG_HOLDER.save();
+        } if (VillagerNames.CONFIG.sureNamesConfig.sureNames.isEmpty()) {
             VillagerNames.CONFIG.sureNamesConfig.sureNames = loadJson("surnameNames.json");
         } if (!VillagerNames.CONFIG.golemNamesConfig.golemNames.contains("Oracle")) {
             loadJson("golemNames.json").forEach(s -> {
@@ -48,7 +46,6 @@ public class NamesLoader {
     }
     //the json file copy will be placed in the config dir
     //should be used to jsonify a names txt file
-    @SuppressWarnings("unused")
     private static void jsonifyTxtFile(String file) throws IOException {
         ArrayList<String> strings = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(NamesLoader.class.getResourceAsStream("/assets/villagernames/names/" + file)));
@@ -56,14 +53,14 @@ public class NamesLoader {
         Path configPath = Paths.get(FabricLoader.getInstance().getConfigDir() + "/VillagerNames.json");
         System.out.println(configPath);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Files.createDirectories(configPath.getParent());
-            BufferedWriter writer = Files.newBufferedWriter(configPath);
-            JsonArray array = new JsonArray();
-            strings.forEach(array::add);
-            JsonObject object = new JsonObject();
-            object.add("villagerNames", array);
-            gson.toJson(object, writer);
-            writer.close();
+        Files.createDirectories(configPath.getParent());
+        BufferedWriter writer = Files.newBufferedWriter(configPath);
+        JsonArray array = new JsonArray();
+        strings.forEach(array::add);
+        JsonObject object = new JsonObject();
+        object.add("villagerNames", array);
+        gson.toJson(object, writer);
+        writer.close();
     }
 
 }

@@ -1,17 +1,18 @@
 package io.github.overlordsiii.villagernames.util;
 
 import io.github.overlordsiii.villagernames.config.NamesConfig;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.ZombieVillagerEntity;
 import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.passive.WanderingTraderEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.Nameable;
 import net.minecraft.village.VillagerProfession;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 import static io.github.overlordsiii.villagernames.VillagerNames.CONFIG;
 
@@ -22,10 +23,12 @@ public class VillagerUtil {
 
     private static final Random random = new Random();
 
-    private static String upperFirstLetter(String string){
-        if (string.contains(":")){
-            string = string.substring(string.indexOf(":") + 1);
+    private static String upperFirstLetter(String string) {
+        int j = string.indexOf(":");
+        if (j != -1) {
+            string = string.substring(j + 1);
         }
+
         StringBuilder builder = new StringBuilder(string);
         builder.setCharAt(0, Character.toUpperCase(string.charAt(0)));
         return builder.toString();
@@ -44,7 +47,7 @@ public class VillagerUtil {
         return names.get(index);
     }
 
-    private static String generateRandomVillagerName(){
+    private static String generateRandomVillagerName() {
         if (CONFIG.villagerGeneralConfig.surNames) {
             if (CONFIG.villagerGeneralConfig.reverseLastNames) {
                 return generateRandomSurname() + " " + pickRandomName(CONFIG.villagerNamesConfig);
@@ -62,165 +65,155 @@ public class VillagerUtil {
         return pickRandomName(CONFIG.sureNamesConfig);
     }
 
-    private static void setGenericVillagerName(VillagerEntity entity, String name) {
-        if (CONFIG.villagerGeneralConfig.childNames) {
-            entity.setCustomName(entity.isBaby() ? new LiteralText(name + " the Child").formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()) : new LiteralText(name).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-        }
-        else {
-            entity.setCustomName(new LiteralText(name).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-        }
-    }
+    public static void updateVillagerName(VillagerEntity entity) {
+        String fullName;
 
-    public static void createVillagerNames(VillagerEntity entity){
-        if (!entity.hasCustomName()){
-            String randomName = generateRandomVillagerName();
-            if (entity.getVillagerData().getProfession() != VillagerProfession.NONE && CONFIG.villagerGeneralConfig.professionNames){
-                String text =  VillagerProfession.NITWIT == entity.getVillagerData().getProfession() ? CONFIG.villagerGeneralConfig.nitwitText : upperFirstLetter(entity.getVillagerData().getProfession().toString());
-                    entity.setCustomName(new LiteralText(randomName + " the " + text).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-                    entity.setCustomNameVisible(true);
+        if (!entity.hasCustomName()) {
+            fullName = generateRandomVillagerName();
+            System.out.println("generated fullName " + fullName);
+        } else {
+            fullName = parseFullName(entity);
+            System.out.println("read fullName " + fullName);
 
-            }
-            else {
-                entity.setCustomNameVisible(true);
-                setGenericVillagerName(entity, randomName);
-            }
-        }
-        entity.setCustomNameVisible(true);
-    }
-
-    public static void loadGolemNames(IronGolemEntity entity){
-        if (!entity.hasCustomName() && CONFIG.villagerGeneralConfig.golemNames) {
-            String name = generateRandomGolemName();
-            entity.setCustomName(new LiteralText(name).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            entity.setCustomNameVisible(true);
-        }
-    }
-
-    public static void updateVillagerNames(VillagerEntity entity){
-        //should never be called, but let's do it anyway!
-        if (entity.getVillagerData().getProfession() == VillagerProfession.NONE) {
-            setGenericVillagerName(entity, generateRandomVillagerName());
-        }
-        else {
-            if (!Objects.requireNonNull(entity.getCustomName()).asString().contains(" the ") && CONFIG.villagerGeneralConfig.professionNames) {
-                //LOGGER.info(entity.getCustomName().asString());
-                entity.setCustomName(new LiteralText(Objects.requireNonNull(entity.getCustomName()).asString() + " the " + upperFirstLetter(entity.getVillagerData().getProfession().toString())).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-                //  LOGGER.info(entity.getCustomName().asString());
-            }
-        }
-        entity.setCustomNameVisible(true);
-    }
-
-    public static void updateLostVillagerProfessionName(VillagerEntity entity){
-        if (entity.hasCustomName() && (CONFIG.villagerGeneralConfig.surNames ? secondIndexOf(entity.getCustomName().asString(), " ") != -1 : entity.getCustomName().asString().contains(" "))) {
-            String string = Objects.requireNonNull(entity.getCustomName()).asString();
-            //    LOGGER.info("Custom name inside lost Villager Name = " + string);
-            String realString = CONFIG.villagerGeneralConfig.professionNames ? string.substring(0, CONFIG.villagerGeneralConfig.surNames ? secondIndexOf(string, " ") : string.indexOf(" ")) : string;
-            //     LOGGER.info("Next string = " + realString);
-            entity.setCustomName(new LiteralText(realString).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-        }
-    }
-
-    public static void updateGrownUpVillagerName(VillagerEntity entity){
-        if (entity.hasCustomName()) {
-            if (Objects.requireNonNull(entity.getCustomName()).asString().contains(" the ")) {
-                entity.setCustomName(new LiteralText(entity.getCustomName().asString().substring(0, CONFIG.villagerGeneralConfig.surNames ? secondIndexOf(entity.getCustomName().asString(), " "): entity.getCustomName().asString().indexOf(" "))).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            }
-        }
-    }
-
-    public static void addZombieVillagerName(VillagerEntity villagerEntity, ZombieVillagerEntity zombieVillagerEntity){
-   //     LOGGER.info(villagerEntity.hasCustomName());
-        if (villagerEntity.hasCustomName()){
-        //    LOGGER.info("before name = " + villagerEntity.getCustomName().asString());
-            if (Objects.requireNonNull(villagerEntity.getCustomName()).asString().contains(" the ")) {
-                String string = villagerEntity.getCustomName().asString().substring(0, CONFIG.villagerGeneralConfig.surNames ? secondIndexOf(villagerEntity.getCustomName().asString(), " ") : villagerEntity.getCustomName().asString().indexOf(" "));
-           //     LOGGER.info("string = " + string);
-                zombieVillagerEntity.setCustomName(new LiteralText(string + " the Zombie").formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-        //        LOGGER.info("zombie name = " + zombieVillagerEntity.getCustomName().asString());
-            }
-            else{
-                String string = " the Zombie";
-                zombieVillagerEntity.setCustomName(new LiteralText(villagerEntity.getCustomName().asString() + string).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            }
-        }
-    }
-
-    public static void removeZombieVillagerName(VillagerEntity villagerEntity, ZombieVillagerEntity zombieVillagerEntity){
-        if (zombieVillagerEntity.hasCustomName()){
-            if (Objects.requireNonNull(zombieVillagerEntity.getCustomName()).asString().contains(" the ")){
-                String name = zombieVillagerEntity.getCustomName().asString().substring(0, zombieVillagerEntity.getCustomName().asString().indexOf(" the "));
-                villagerEntity.setCustomName(new LiteralText(name).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            }
-            else{
-                String string = " the Zombie";
-                zombieVillagerEntity.setCustomName(new LiteralText(Objects.requireNonNull(villagerEntity.getCustomName()).asString() + string).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            }
-        }
-    }
-
-    public static void generalVillagerUpdate(VillagerEntity entity){
-        if (entity.hasCustomName()){
-            String namer = Objects.requireNonNull(entity.getCustomName()).asString();
             if (CONFIG.villagerGeneralConfig.surNames) {
-                if (entity.getVillagerData().getProfession() == VillagerProfession.NONE && !namer.contains(" ")) {//indicates that the villager does not have a profession and does not have last name
-                    namer = namer + " " + generateRandomSurname();
-                } else if (entity.getVillagerData().getProfession() != VillagerProfession.NONE && namer.charAt(namer.indexOf(" ") + 1) == 't') {//indicates they have a profession but no last name
-                    StringBuilder builder = new StringBuilder(namer);
-                    builder.insert(namer.indexOf(" "), " " + generateRandomSurname());
-                    namer = builder.toString();
+                String surname = parseSurname(fullName);
+                if (surname == null) {
+                    fullName += " " + generateRandomSurname();
                 }
             }
-            entity.setCustomName(new LiteralText(namer).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            if (entity.isBaby() && CONFIG.villagerGeneralConfig.childNames && !entity.getCustomName().asString().contains(" the Child")){
-                entity.setCustomName(new LiteralText(entity.getCustomName().asString() + " the Child").formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            } else if (entity.getVillagerData().getProfession() == VillagerProfession.NITWIT && !entity.getCustomName().asString().contains(CONFIG.villagerGeneralConfig.nitwitText)){
-              String name =  entity.getCustomName().asString().substring(0, entity.getCustomName().asString().indexOf(" the "));
-              entity.setCustomName(new LiteralText(name + " the " + CONFIG.villagerGeneralConfig.nitwitText));
-            }
-            entity.setCustomNameVisible(true);
+
+            // TODO: what if surNames were enabled and now disabled? Do we try to remove them?
+            // this is one thing which would be easier if fore- and surnames were stored independently
+            // Alternatively we could assume that a full name consists of exactly 2 tokens; with the implementation
+            // right now, middle names are allowed (as part of the forename)
+        }
+
+        String titledFullName = getTitledVillagerName(entity, fullName);
+
+        setEntityName(entity, titledFullName);
+    }
+
+    private static void setEntityName(Entity entity, String titledFullName) {
+        entity.setCustomName(new LiteralText(titledFullName).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
+        entity.setCustomNameVisible(true);
+    }
+
+    @NotNull
+    private static String getTitledVillagerName(VillagerEntity entity, String fullName) {
+        VillagerProfession profession = entity.getVillagerData().getProfession();
+
+        if (CONFIG.villagerGeneralConfig.childNames && entity.isBaby()) {
+            return fullName + " the Child";
+        } else if (CONFIG.villagerGeneralConfig.professionNames && profession != VillagerProfession.NONE) {
+            String professionName = (profession == VillagerProfession.NITWIT ? CONFIG.villagerGeneralConfig.nitwitText : upperFirstLetter(profession.toString()));
+            return fullName + " the " + professionName;
+        } else {
+            return fullName;
         }
     }
 
-    public static void createWanderingTraderNames(WanderingTraderEntity entity){
-        if (!entity.hasCustomName() && CONFIG.villagerGeneralConfig.wanderingTraderNames){
-            entity.setCustomName(new LiteralText(generateRandomVillagerName() + " the " + CONFIG.villagerGeneralConfig.wanderingTraderText).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            entity.setCustomNameVisible(true);
+    @NotNull
+    private static String parseFullName(Nameable entity) {
+        String customName = Objects.requireNonNull(entity.getCustomName()).asString();
+
+        int j = customName.indexOf(" the ");
+        if (j == -1) {
+            return customName;
+        } else {
+            return customName.substring(0, j);
         }
     }
 
-    public static void updateWanderingTraderNames(WanderingTraderEntity entity){
-        if (entity.hasCustomName()){
-            String fullName = Objects.requireNonNull(entity.getCustomName()).asString();
-            String firstName = fullName.substring(0, fullName.indexOf(" the "));
-            entity.setCustomName(new LiteralText(firstName + " the " + CONFIG.villagerGeneralConfig.wanderingTraderText).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            entity.setCustomNameVisible(true);
+    @NotNull
+    private static String parseForename(String fullName) {
+        int j = fullName.lastIndexOf(' ');
+        if (j == -1) {
+            return fullName;
+        } else {
+            System.out.println("forename("+fullName+") = " + fullName.substring(0, j));
+            return fullName.substring(0, j);
         }
     }
 
-    public static void updateGolemNames(IronGolemEntity entity){
-        if (entity.hasCustomName()){
-            entity.setCustomName(new LiteralText(Objects.requireNonNull(entity.getCustomName()).asString()).formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
-            entity.setCustomNameVisible(true);
+    @Nullable
+    private static String parseSurname(String fullName) {
+        int j = fullName.lastIndexOf(' ');
+        if (j == -1) {
+            System.out.println("no surname?!");
+            return null;
+        } else {
+            System.out.println("surname("+fullName+") = " + fullName.substring(j + 1));
+            return fullName.substring(j + 1);
         }
     }
 
-    private static int secondIndexOf(String source, String index) {
-        return source.indexOf(index, source.indexOf(index) + 1);
+    public static void inheritSurname(VillagerEntity childEntity, VillagerEntity parentEntity) {
+        if (CONFIG.villagerGeneralConfig.surNames) {
+            System.out.println("child name: " + parseFullName(childEntity));
+
+            assert childEntity.hasCustomName();
+            assert parentEntity.hasCustomName();
+
+            String childForename = parseForename(parseFullName(childEntity));
+            String parentSurname = parseSurname(parseFullName(parentEntity));
+
+            assert parentSurname != null;
+
+            String titledFullName = getTitledVillagerName(childEntity, childForename + " " + parentSurname);
+
+            setEntityName(childEntity, titledFullName);
+        }
     }
 
-    public static void addLastNameFromBreeding(VillagerEntity childEntity, VillagerEntity parentEntity) {
-        if (parentEntity.hasCustomName() && CONFIG.villagerGeneralConfig.surNames) {
-            String name;
-            if (parentEntity.getVillagerData().getProfession() == VillagerProfession.NONE) {
-                name = parentEntity.getCustomName().asString().substring(parentEntity.getCustomName().asString().indexOf(" "));
+    public static void setZombieVillagerName(ZombieVillagerEntity zombieVillagerEntity, VillagerEntity villagerEntity) {
+        assert villagerEntity.hasCustomName();
+
+        String titledFullName = parseFullName(villagerEntity) + " the Zombie";
+        setEntityName(zombieVillagerEntity, titledFullName);
+    }
+
+    public static void transferZombieVillagerName(ZombieVillagerEntity zombieVillagerEntity, VillagerEntity villagerEntity) {
+        // TODO: do zombie villagers spawn with names?
+
+        if (zombieVillagerEntity.hasCustomName()) {
+            // a freshly converted villager probably can't have a title, but just in case
+            String titledFullName = getTitledVillagerName(villagerEntity, parseFullName(zombieVillagerEntity));
+            setEntityName(villagerEntity, titledFullName);
+        }
+    }
+
+    public static void updateWanderingTraderNames(WanderingTraderEntity entity) {
+        if (CONFIG.villagerGeneralConfig.wanderingTraderNames) {
+            String fullName;
+            if (!entity.hasCustomName()) {
+                fullName = generateRandomVillagerName();
             } else {
-                name = parentEntity.getCustomName().asString().substring(secondIndexOf(parentEntity.getCustomName().asString(), " "));
+                fullName = parseFullName(entity);
             }
-            String fullName = pickRandomName(CONFIG.villagerNamesConfig) + name;
-            System.out.println(parentEntity.getCustomName().asString());
-            System.out.println(fullName);
-            childEntity.setCustomName(new LiteralText(CONFIG.villagerGeneralConfig.childNames ? fullName + " the Child" : fullName));
+            String titledFullName = fullName + " the " + CONFIG.villagerGeneralConfig.wanderingTraderText;
+
+            setEntityName(entity, titledFullName);
+        } else {
+            // TODO: what should actually happen if names are disabled and entities already have custom names?
+            setStyling(entity);
+        }
+    }
+
+    public static void updateGolemNames(IronGolemEntity entity) {
+        if (CONFIG.villagerGeneralConfig.golemNames && !entity.hasCustomName()) {
+            // Note: Golem names have no titles
+            String fullName = generateRandomGolemName();
+            setEntityName(entity, fullName);
+        } else {
+            // TODO
+            setStyling(entity);
+        }
+    }
+
+    private static void setStyling(Entity entity) {
+        if (entity.hasCustomName()) {
+            entity.setCustomName(entity.getCustomName().copy().formatted(CONFIG.villagerGeneralConfig.villagerTextFormatting.getFormatting()));
+            entity.setCustomNameVisible(true);
         }
     }
 }

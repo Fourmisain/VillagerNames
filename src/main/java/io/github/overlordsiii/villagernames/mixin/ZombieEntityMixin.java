@@ -24,7 +24,7 @@ public abstract class ZombieEntityMixin extends HostileEntity {
 
     @Inject(method = "onKilledOther", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/mob/ZombieVillagerEntity;initialize(Lnet/minecraft/world/ServerWorldAccess;Lnet/minecraft/world/LocalDifficulty;Lnet/minecraft/entity/SpawnReason;Lnet/minecraft/entity/EntityData;Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/entity/EntityData;"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void addZombieNameTag(ServerWorld serverWorld, LivingEntity livingEntity, CallbackInfo ci, VillagerEntity villagerEntity, ZombieVillagerEntity zombieVillagerEntity){
-        VillagerUtil.addZombieVillagerName(villagerEntity, zombieVillagerEntity);
+        VillagerUtil.setZombieVillagerName(zombieVillagerEntity, villagerEntity);
     }
 
 }

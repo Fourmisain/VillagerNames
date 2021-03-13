@@ -104,7 +104,7 @@ public class VillagerNameCommand {
                                         new LiteralText(FormattingDummy.fromFormatting(newFormatting)
                                                 .toString()).formatted(newFormatting))))
                 , true);
-        VillagerNames.CONFIG_MANAGER.save();
+        VillagerNames.CONFIG_HOLDER.save();
         try {
             broadCastConfigChangeToOps(ctx, ConfigChange.SET, VillagerGeneralConfig.class.getDeclaredField("villagerTextFormatting"), ctx.getSource().getPlayer(), null);
         } catch (Exception e) {
@@ -125,7 +125,7 @@ public class VillagerNameCommand {
                                 "/villagername set " + literal + " " + newvalue)))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND
                                 , "/villagername set " + literal))), true);
-        VillagerNames.CONFIG_MANAGER.save();
+        VillagerNames.CONFIG_HOLDER.save();
         try {
             broadCastConfigChangeToOps(ctx, ConfigChange.SET, VillagerGeneralConfig.class.getDeclaredField(literal), ctx.getSource().getPlayer(), null);
         } catch (Exception e) {
@@ -154,7 +154,7 @@ public class VillagerNameCommand {
                                           , "/villagername toggle " + literal))
                                   .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT
                                           , new LiteralText("Toggle the " + literal + " rule")))), true);
-        VillagerNames.CONFIG_MANAGER.save();
+        VillagerNames.CONFIG_HOLDER.save();
         try {
             broadCastConfigChangeToOps(ctx, ConfigChange.TOGGLE, VillagerGeneralConfig.class.getDeclaredField(literal), ctx.getSource().getPlayer(), null);
         } catch (Exception e) {
@@ -191,7 +191,7 @@ public class VillagerNameCommand {
         } catch (Exception e) {
             logError(ctx, e);
         }
-        VillagerNames.CONFIG_MANAGER.save();
+        VillagerNames.CONFIG_HOLDER.save();
         return 1;
     }
 
@@ -221,7 +221,7 @@ public class VillagerNameCommand {
         } catch (Exception e) {
             logError(ctx, e);
         }
-        VillagerNames.CONFIG_MANAGER.save();
+        VillagerNames.CONFIG_HOLDER.save();
         return 1;
     }
 

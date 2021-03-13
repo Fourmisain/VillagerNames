@@ -19,17 +19,16 @@ public abstract class VillagerBreedTaskMixin {
     @Inject(method = "createChild",
             at = @At("TAIL"),
             locals = LocalCapture.CAPTURE_FAILHARD)
-    private void onCreateChild(ServerWorld serverWorld, VillagerEntity villagerEntity, VillagerEntity villagerEntity2, CallbackInfoReturnable<Optional> cir, VillagerEntity villagerEntity3) {
-        VillagerUtil.addLastNameFromBreeding(villagerEntity3, villagerEntity);
+    private void onCreateChild(ServerWorld serverWorld, VillagerEntity villagerEntity, VillagerEntity villagerEntity2, CallbackInfoReturnable<Optional<VillagerEntity>> cir, VillagerEntity villagerEntity3) {
+        VillagerUtil.inheritSurname(villagerEntity3, villagerEntity);
         if (VillagerNames.CONFIG.villagerGeneralConfig.surNames) {
             System.out.println("villager name for villagerEntity (parent) = " + valueOf(villagerEntity.getCustomName()));
-            System.out.println("villager name for villagerEntity3 (child) = " + valueOf(villagerEntity.getCustomName()));
+            System.out.println("villager name for villagerEntity2 (?) = " + valueOf(villagerEntity2.getCustomName()));
+            System.out.println("villager name for villagerEntity3 (child) = " + valueOf(villagerEntity3.getCustomName()));
         }
     }
 
     private String valueOf(Text object) {
         return object == null ? "null" : object.asString();
     }
-
-
 }
